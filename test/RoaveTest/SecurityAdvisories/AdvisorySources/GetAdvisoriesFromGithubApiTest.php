@@ -341,9 +341,7 @@ class GetAdvisoriesFromGithubApiTest extends TestCase
         ], Vec\Values($advisories()));
     }
 
-    /**
-     * @dataProvider correctResponseWithIgnoredAdvisories
-     */
+    /** @dataProvider correctResponseWithIgnoredAdvisories */
     public function testWillSkipIgnoredAdvisories(ResponseInterface ...$responses): void
     {
         $client = $this->createMock(Client::class);
