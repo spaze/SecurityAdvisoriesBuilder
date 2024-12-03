@@ -341,6 +341,27 @@ class GetAdvisoriesFromGithubApiTest extends TestCase
         ], Vec\Values($advisories()));
     }
 
+    /**
+     * @dataProvider correctResponseWithIgnoredAdvisories
+     */
+    public function testWillSkipIgnoredAdvisories(ResponseInterface ...$responses): void
+    {
+        $client = $this->createMock(Client::class);
+        $logger = $this->createMock(LoggerInterface::class);
+
+        $client->method('sendRequest')
+            ->willReturnOnConsecutiveCalls(...$responses);
+
+        $advisories = new GetAdvisoriesFromGithubApi($client, 'some_token', $logger);
+
+        self::assertEquals([
+            Advisory::fromArrayData([
+                'reference' => 'aa/bb',
+                'branches' => [['versions' => ['<= 1.1.0']]],
+            ]),
+        ], Vec\Values($advisories()));
+    }
+
     /** @psalm-return non-empty-list<list<ResponseInterface>> */
     public function correctResponsesWithInvalidAdvisoryNames(): array
     {
@@ -509,6 +530,66 @@ class GetAdvisoriesFromGithubApiTest extends TestCase
                       "pageInfo": {
                         "hasNextPage": false,
                         "endCursor": "Y3Vyc29yOnYyOpK5MjAyMS0wNS0wNVQwMDo0Njo1MSswMjowMM0_Fg=="
+                      }
+                    }
+                  }
+                }
+            QUERY;
+
+        return [[new Response(200, [], $query)]];
+    }
+
+    /** @psalm-return non-empty-list<list<ResponseInterface>> */
+    public function correctResponseWithIgnoredAdvisories(): array
+    {
+        $query = <<<'QUERY'
+                {
+                  "data": {
+                    "securityVulnerabilities": {
+                      "edges": [
+                        {
+                          "cursor": "Y3Vyc29yOnYyOpK5MjAyMS0wNS0wNVQwMDo0Njo1MSswMjowMM0_Fg==",
+                          "node": {
+                            "vulnerableVersionRange": "<= 1.1.0",
+                            "package": {
+                              "name": "aa/bb"
+                            },
+                            "advisory": {
+                              "ghsaId": "aaa-bbb",
+                              "withdrawnAt": null
+                            }
+                          }
+                        },
+                        {
+                          "cursor": "Y3Vyc29yOnYyOpK5MjAyNC0xMi0wMlQyMToxOTo0MSswMTowMM3_Og==",
+                          "node": {
+                            "vulnerableVersionRange": "< 6.4.4",
+                            "package": {
+                              "name": "symfony/var-dumper"
+                            },
+                            "advisory": {
+                              "ghsaId": "GHSA-cg28-v4wq-whv5",
+                              "withdrawnAt": null
+                            }
+                          }
+                        },
+                        {
+                          "cursor": "3Vyc29yOnYyOpK5MjAyNC0xMi0wMlQyMToyMToxMSswMTowMM3_Ow==",
+                          "node": {
+                            "vulnerableVersionRange": "< 7.1.0",
+                            "package": {
+                              "name": "symfony/security-http"
+                            },
+                            "advisory": {
+                              "ghsaId": "GHSA-7q22-x757-cmgc",
+                              "withdrawnAt": null
+                            }
+                          }
+                        }
+                      ],
+                      "pageInfo": {
+                        "hasNextPage": false,
+                        "endCursor": "3Vyc29yOnYyOpK5MjAyNC0xMi0wMlQyMToyMToxMSswMTowMM3_Ow=="
                       }
                     }
                   }
