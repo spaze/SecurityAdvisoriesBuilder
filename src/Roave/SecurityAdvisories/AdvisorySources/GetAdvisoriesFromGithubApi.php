@@ -42,6 +42,8 @@ final class GetAdvisoriesFromGithubApi implements GetAdvisories
     private const IGNORED_ADVISORIES = [
         'GHSA-7q22-x757-cmgc', // @see https://phpc.social/@wouterj/113588554019692959
         'GHSA-cg28-v4wq-whv5', // @see https://phpc.social/@wouterj/113588554019692959
+        // @see https://github.com/github/advisory-database/pull/5047, advisory is for the tarball version only
+        'GHSA-j5g2-q29x-cw3h',
     ];
     private const GRAPHQL_QUERY      = 'query {
             securityVulnerabilities(ecosystem: COMPOSER, first: 100 %s) {
