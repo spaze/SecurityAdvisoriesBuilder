@@ -35,9 +35,15 @@ use Roave\SecurityAdvisories\Exception\InvalidPackageName;
 use SensitiveParameter;
 use UnexpectedValueException;
 
+use function in_array;
+
 final class GetAdvisoriesFromGithubApi implements GetAdvisories
 {
-    private const GRAPHQL_QUERY = 'query {
+    private const IGNORED_ADVISORIES = [
+        'GHSA-7q22-x757-cmgc', // @see https://phpc.social/@wouterj/113588554019692959
+        'GHSA-cg28-v4wq-whv5', // @see https://phpc.social/@wouterj/113588554019692959
+    ];
+    private const GRAPHQL_QUERY      = 'query {
             securityVulnerabilities(ecosystem: COMPOSER, first: 100 %s) {
                 edges {
                     cursor
@@ -84,6 +90,11 @@ final class GetAdvisoriesFromGithubApi implements GetAdvisories
 
             if ($item['node']['advisory']['withdrawnAt'] !== null) {
                 // Skip withdrawn advisories.
+                continue;
+            }
+
+            if (in_array($item['node']['advisory']['ghsaId'], self::IGNORED_ADVISORIES, true)) {
+                // Skip ignored advisories.
                 continue;
             }
 
